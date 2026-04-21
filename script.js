@@ -14,7 +14,7 @@
 const packs = [
 
   // ✅ PACK 1 — 3D EMOJI
-  { emoji: "", image: "https://www.image2url.com/r2/default/images/1776735283982-2afa6570-877b-4708-a0ea-da74a584ce1b.jpg", nom: "3D Emoji", stickers: 17, taille: "3.9 MB", lien: "https://whatsapp.com/channel/0029VbCRcpAIt5ro4kShr414/100", badge: "Populaire" },
+  { emoji: "", image: "https://res.cloudinary.com/db7r7c4e5/image/upload/v1776736250/zdkunfw3w4uwubgwmyoo.jpg", nom: "3D Emoji", stickers: 17, taille: "3.9 MB", lien: "https://whatsapp.com/channel/0029VbCRcpAIt5ro4kShr414/100", badge: "Populaire" },
 
   // 🔽 AJOUTE TES PACKS EN DESSOUS
   // Pour une image : image: "images/monpack.jpg"
