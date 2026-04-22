@@ -11,8 +11,9 @@ const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
 
 // Packs de secours si JSONbin est indisponible
 const packsSecours = [
-  { emoji: "😎", image: "https://res.cloudinary.com/db7r7c4e5/image/upload/v1776736250/zdkunfw3w4uwubgwmyoo.jpg", nom: "3D Emoji", stickers: 17, taille: "3.9 MB", lien: "https://whatsapp.com/channel/0029VbCRcpAIt5ro4kShr414/100", badge: "Populaire" },
-  { emoji: "❤️", image: "", nom: "Love Vibes", stickers: 0, taille: "- MB", lien: "#", badge: "Nouveau" },
+  { emoji: "❤️", image: "", nom: "Love Vibes", stickers: 0, taille: "- MB", lien: "https://wa.me/stickerpack/XOXO", badge: "Nouveau" },
+  { emoji: "🐦", image: "", nom: "Fearless Bird", stickers: 0, taille: "- MB", lien: "https://wa.me/stickerpack/FearlessBird", badge: "" },
+  { emoji: "🕺", image: "", nom: "Dance To The Beat", stickers: 0, taille: "- MB", lien: "https://wa.me/stickerpack/DanceToTheBeat", badge: "" },
   { emoji: "😂", image: "", nom: "Humour Pack", stickers: 0, taille: "- MB", lien: "#", badge: "" },
   { emoji: "🌸", image: "", nom: "Floran", stickers: 0, taille: "- MB", lien: "#", badge: "" },
   { emoji: "🎌", image: "", nom: "Mangas Zone", stickers: 0, taille: "- MB", lien: "#", badge: "" },
@@ -129,15 +130,22 @@ function afficherPacks(listePacks, lang) {
 }
 
 async function genererPacks(lang) {
+  // Afficher les packs de secours immédiatement
+  packsGlobal = packsSecours;
+  afficherPacks(packsGlobal, lang);
+
+  // Charger les vrais packs depuis JSONbin en arrière-plan
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
     const data = await res.json();
-    packsGlobal = data.record && data.record.length ? data.record : packsSecours;
+    if (data.record && data.record.length) {
+      packsGlobal = data.record;
+      afficherPacks(packsGlobal, lang);
+      scrollVersAncre();
+    }
   } catch (e) {
-    packsGlobal = packsSecours;
+    // Garder les packs de secours si JSONbin échoue
   }
-  afficherPacks(packsGlobal, lang);
-  scrollVersAncre();
 }
 
 function initScrollReveal() {
