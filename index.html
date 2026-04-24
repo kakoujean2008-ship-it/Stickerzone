@@ -257,8 +257,8 @@
         Télécharger le fond d'écran
       </button>
       <p class="dl-notice">
-        ⚠️ Une publicité s'ouvrira lors du premier clic — c'est normal et gratuit.<br>
-        Fais <strong>retour</strong> puis appuie à nouveau sur <strong>Télécharger</strong> pour obtenir ton image.
+        ⚠️ <strong>Important :</strong> Une pub peur s'afficher.<br>
+        Si tu vois la pub, fais <strong>retour</strong> puis appuie à nouveau sur <strong>Télécharger</strong> — ton image se lancera directement.
       </p>
     </div>
   </div>
@@ -307,6 +307,34 @@
     });
   });
 
+  // RESTAURATION AU RETOUR (sessionStorage)
+  (function restoreAfterAd(){
+    const saved = sessionStorage.getItem('evannsDL');
+    if(!saved) return;
+    const { imageUrl, name, adDone } = JSON.parse(saved);
+    if(!adDone) return;
+    // Le visiteur revient après la pub : on réaffiche l'image et on passe direct en mode téléchargement
+    const area = document.getElementById('resultArea');
+    const img  = document.getElementById('resultImg');
+    const wrap = document.getElementById('downloadWrap');
+    const dlBtn= document.getElementById('downloadBtn');
+    document.getElementById('loadingState').classList.remove('active');
+    img.onload=()=>{
+      img.style.display='block';
+      wrap.style.display='flex';
+      dlBtn.style.display='flex';
+      area.classList.add('visible');
+      // Scroll doux vers le résultat
+      setTimeout(()=>area.scrollIntoView({behavior:'smooth',block:'center'}),100);
+      // Déjà passé par la pub : clic suivant = téléchargement direct
+      attachDownload(dlBtn, imageUrl, name);
+      // Nettoyer sessionStorage
+      sessionStorage.removeItem('evannsDL');
+    };
+    img.src = imageUrl;
+    area.classList.add('visible');
+  })();
+
   // GENERATE
   async function generateImage(){
     const name   = document.getElementById('nameInput').value.trim();
@@ -317,7 +345,6 @@
 
     if(!name){ errEl.textContent='✦ Entre ton prénom ou nom pour continuer.';errEl.classList.add('show');document.getElementById('nameInput').focus();return; }
 
-    // Build a detailed, powerful prompt
     let prompt = `A stunning premium wallpaper featuring the name "${name}" as the central typographic masterpiece, bold large decorative letters dominating the composition`;
     if(selectedStyle) prompt += `, ${selectedStyle}`;
     if(desc) prompt += `, ${desc}`;
@@ -325,6 +352,9 @@
 
     genBtn.disabled=true;genBtn.textContent='✦   Création en cours…';
     showLoading();
+
+    // Nouvelle génération = on repart de zéro
+    sessionStorage.removeItem('evannsDL');
 
     const seed=Math.floor(Math.random()*9999999);
     const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${resW}&height=${resH}&seed=${seed}&model=flux&enhance=true&nologo=true`;
@@ -338,10 +368,24 @@
     document.getElementById('loadingState').classList.add('active');
     document.getElementById('resultImg').style.display='none';
     document.getElementById('downloadBtn').style.display='none';
+    document.getElementById('downloadWrap').style.display='none';
     area.classList.add('visible');
     area.scrollIntoView({behavior:'smooth',block:'center'});
   }
   function hideLoading(){ document.getElementById('loadingState').classList.remove('active'); }
+
+  function attachDownload(dlBtn, imageUrl, name){
+    dlBtn.onclick=async(e)=>{
+      e.preventDefault();
+      try{
+        const res=await fetch(imageUrl);const blob=await res.blob();
+        const bUrl=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=bUrl;
+        a.download=`evanns-name-${name.toLowerCase().replace(/\s+/g,'-')}.png`;
+        a.click();URL.revokeObjectURL(bUrl);
+      }catch{ window.open(imageUrl,'_blank'); }
+    };
+  }
 
   function showResult(imageUrl,name){
     const img   = document.getElementById('resultImg');
@@ -349,21 +393,23 @@
     img.onload=()=>{
       hideLoading();
       img.style.display='block';
+      const wrap = document.getElementById('downloadWrap');
+      wrap.style.display='flex';
       dlBtn.style.display='flex';
+
       dlBtn.onclick=async(e)=>{
         e.preventDefault();
-        try{
-          const res=await fetch(imageUrl);const blob=await res.blob();
-          const bUrl=URL.createObjectURL(blob);
-          const a=document.createElement('a');a.href=bUrl;
-          a.download=`evanns-name-${name.toLowerCase().replace(/\s+/g,'-')}.png`;
-          a.click();URL.revokeObjectURL(bUrl);
-        }catch{ window.open(imageUrl,'_blank'); }
+        // Sauvegarder l'état dans sessionStorage avant de quitter
+        sessionStorage.setItem('evannsDL', JSON.stringify({ imageUrl, name, adDone: true }));
+        // Rediriger vers le smartlink
+        window.location.href = 'https://omg10.com/4/10921151';
       };
     };
     img.onerror=()=>{
       const fb=`https://image.pollinations.ai/prompt/${encodeURIComponent('artistic wallpaper name '+name)}?width=1280&height=720&model=flux`;
-      img.src=fb;hideLoading();img.style.display='block';dlBtn.style.display='flex';
+      img.src=fb;hideLoading();img.style.display='block';
+      const wrap=document.getElementById('downloadWrap');
+      wrap.style.display='flex';dlBtn.style.display='flex';
     };
     img.src=imageUrl;
   }
